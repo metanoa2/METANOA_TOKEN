@@ -106,12 +106,14 @@ contract NoaSwap is Ownable {
     function swap() external {
         address msgSender = _msgSender();
         address contractAddress = address(this);
-
         uint256 legacyBalance = legacyNOA.balanceOf(msgSender);
+
+        require(legacyBalance > 0, "Insufficient NOA");
         require(legacyNOA.allowance(msgSender, contractAddress) >= legacyBalance, "Allowance too low");
         require(legacyBalance <= METANOA.balanceOf(contractAddress), "Insufficient METANOA");
 
         legacyNOA.transferFrom(msgSender, contractAddress, legacyBalance);
+        METANOA.transfer(msgSender, legacyBalance);
     }
 
     function withdraw() external onlyOwner {

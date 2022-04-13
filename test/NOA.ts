@@ -2,7 +2,7 @@ import { ethers } from "hardhat";
 import { BigNumber, constants } from "ethers";
 import chai from "chai";
 import { solidity } from "ethereum-waffle";
-import { NOA } from "../types/NOA";
+import { NOA } from "../types/contracts/NOA.sol/NOA";
 import { ERRORS } from "./constants";
 import { expectEvent, expectRevert, timeTravel } from "./helpers";
 const { expect } = chai;
@@ -54,6 +54,7 @@ describe(TOKEN_SYMBOL + " Token Test", function () {
 
         const Contract = await ethers.getContractFactory(TOKEN_SYMBOL, ownerSigner);
         contract = (await Contract.deploy()) as NOA;
+        await contract.deployed();
         supervisorContract = contract.connect(accounts[1]);
         ordinaryContract = contract.connect(accounts[2]);
         freezedContract = contract.connect(accounts[3]);
@@ -70,7 +71,6 @@ describe(TOKEN_SYMBOL + " Token Test", function () {
 
     describe("1. basic info test", async function () {
         it("1-1 should basic info right", async function () {
-            await contract.deployed();
             expect(await contract.symbol()).to.equal(TOKEN_SYMBOL);
             expect(await contract.name()).to.equal(TOKEN_NAME);
             expect(await contract.balanceOf(owner)).to.equal(BigNumber.from(TOTAL_SUPPLY));
@@ -79,7 +79,6 @@ describe(TOKEN_SYMBOL + " Token Test", function () {
 
     describe("2. transfer test", async function () {
         it("2-1 should transfer some token to ordinary", async function () {
-            await contract.deployed();
             let amount = BigNumber.from(10000);
             await expectEvent(contract.transfer(ordinary, amount), "Transfer", { from: owner, to: ordinary, value: amount });
             expect(await contract.balanceOf(ordinary)).to.equal(amount);
@@ -88,7 +87,6 @@ describe(TOKEN_SYMBOL + " Token Test", function () {
 
     describe("3. freeze test", () => {
         it("3-1 should freeze and unfreeze transfer", async () => {
-            await contract.deployed();
             let freezedAmount = 10000;
 
             await contract.transfer(freezed, freezedAmount);
@@ -105,7 +103,6 @@ describe(TOKEN_SYMBOL + " Token Test", function () {
 
     describe("4. burner test", () => {
         it("4-1 should set burner properly by owner", async () => {
-            await contract.deployed();
             expect(await contract.isBurner(burner)).to.equal(false);
             await expectRevert(ordinaryContract.addBurner(burner), ERRORS.OWNABLE_CALLER_NOT_OWNER);
             expect(await contract.isBurner(burner)).to.equal(false);
@@ -120,7 +117,6 @@ describe(TOKEN_SYMBOL + " Token Test", function () {
             expect(await contract.isBurner(burner)).to.equal(false);
         });
         it("4-2 should burn", async () => {
-            await contract.deployed();
             let transferredAmount = 20000;
             let burnedAmount = 10000;
             await contract.addBurner(burner);
@@ -136,8 +132,6 @@ describe(TOKEN_SYMBOL + " Token Test", function () {
 
     describe("5. locker test", () => {
         it("5-1 should lock and unlock properly by owner", async () => {
-            await contract.deployed();
-
             expect(await contract.isLocker(locker)).to.equal(false);
 
             await expectRevert(ordinaryContract.addLocker(locker), ERRORS.OWNABLE_CALLER_NOT_OWNER);
@@ -153,7 +147,6 @@ describe(TOKEN_SYMBOL + " Token Test", function () {
         });
 
         it("5-2 should time lock add and remove work right", async () => {
-            await contract.deployed();
             const transferredAmount: number = 50000;
             const lockedAmount: number = 10000;
             let now: number = Date.now();
@@ -253,7 +246,6 @@ describe(TOKEN_SYMBOL + " Token Test", function () {
         });
 
         it("5-3 should time lock and transfer", async () => {
-            await contract.deployed();
             const transferredAmount = 50000;
             const lockedAmount = 10000;
             let now = Date.now();
@@ -276,7 +268,6 @@ describe(TOKEN_SYMBOL + " Token Test", function () {
         });
 
         it("5-4 should time lock expires", async () => {
-            await contract.deployed();
             let transferredAmount = 50000;
             let lockedAmount = 10000;
             let now = Math.round(new Date().getTime() / 1000);
@@ -308,7 +299,6 @@ describe(TOKEN_SYMBOL + " Token Test", function () {
         });
 
         it("5-5 should vesting lock add and remove work right", async () => {
-            await contract.deployed();
             let transferredAmount = 50000;
             let period = 60 * 60 * 24 * 31;
             let startsAt = new Date().getTime() + period;
@@ -344,7 +334,6 @@ describe(TOKEN_SYMBOL + " Token Test", function () {
         });
 
         it("5-6 should vesting lock and transfer", async () => {
-            await contract.deployed();
             let transferredAmount = 50000;
             let lockedAmount = 50000;
             let period = 60 * 60 * 24 * 31;
@@ -365,7 +354,6 @@ describe(TOKEN_SYMBOL + " Token Test", function () {
         });
 
         it("5-7 should vesting lock expires", async () => {
-            await contract.deployed();
             let transferredAmount = 50000;
             let period = 60 * 60 * 24 * 31;
             let startsAt = Math.floor(new Date().getTime() / 1000) + period;
